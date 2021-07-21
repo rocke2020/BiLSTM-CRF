@@ -21,7 +21,7 @@ Options:
     --optimizer-save-path=<file>        optimizer save path [default: ./model/optimizer.pth]
     --cuda                              use GPU
 """
-
+from icecream import ic
 from docopt import docopt
 from vocab import Vocab
 import time
