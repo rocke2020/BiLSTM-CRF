@@ -22,7 +22,7 @@ class BiLSTMCRF(nn.Module):
         self.tag_vocab = tag_vocab
         self.embedding = nn.Embedding(len(sent_vocab), embed_size)
         self.dropout = nn.Dropout(dropout_rate)
-        self.encoder = nn.LSTM(input_size=embed_size, hidden_size=hidden_size, bidirectional=True)
+        self.encoder = nn.LSTM(input_size=embed_size, hidden_size=hidden_size, bidirectional=True, batch_first=True)
         self.hidden2emit_score = nn.Linear(hidden_size * 2, len(self.tag_vocab))
         self.transition = nn.Parameter(torch.randn(len(self.tag_vocab), len(self.tag_vocab)))  # shape: (K, K)
 
@@ -37,7 +37,6 @@ class BiLSTMCRF(nn.Module):
             loss (tensor): loss on the batch, shape (b,)
         """
         mask = (sentences != self.sent_vocab[self.sent_vocab.PAD]).to(self.device)  # shape: (b, len)
-        sentences = sentences.transpose(0, 1)  # shape: (len, b)
         sentences = self.embedding(sentences)  # shape: (len, b, e)
         emit_score = self.encode(sentences, sen_lengths)  # shape: (b, len, K)
         loss = self.cal_loss(tags, mask, emit_score)  # shape: (b,)
@@ -51,7 +50,7 @@ class BiLSTMCRF(nn.Module):
         Returns:
             emit_score (tensor): emit score, shape (b, len, K)
         """
-        sentences = pack_padded_sequence(sentences, sent_lengths)
+        sentences = pack_padded_sequence(sentences, sent_lengths, batch_first=True)
         output, _ = self.encoder(sentences)
         output, _ = pad_packed_sequence(output, batch_first=True)  # shape: (b, len, 2h)
         emit_score = self.hidden2emit_score(output)  # shape: (b, len, K)
@@ -101,7 +100,6 @@ class BiLSTMCRF(nn.Module):
         """
         batch_size = sentences.shape[0]
         mask = (sentences != self.sent_vocab[self.sent_vocab.PAD])  # shape: (b, len)
-        sentences = sentences.transpose(0, 1)  # shape: (len, b)
         sentences = self.embedding(sentences)  # shape: (len, b, e)
         emit_score = self.encode(sentences, sen_lengths)  # shape: (b, len, K)
         tags = [[[i] for i in range(len(self.tag_vocab))]] * batch_size  # list, shape: (b, K, 1)
