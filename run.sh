@@ -9,11 +9,11 @@ then
 elif [ "$1" = "test" ]
 then
   python run.py test ./data/test.txt ./result.txt ./vocab/sent_vocab.json ./vocab/tag_vocab.json ./model/model.pth --cuda
-  perl conlleval.pl < result.txt
+  perl conlleval.pl < result.txt | tee result_score.txt
 elif [ "$1" = "test-without-cuda" ]
 then
   python run.py test ./data/test.txt ./result.txt  ./vocab/sent_vocab.json ./vocab/tag_vocab.json ./model/model.pth
-  perl conlleval.pl < result.txt
+  perl conlleval.pl < result.txt | tee result_score.txt
 elif [ "$1" = "vocab" ]
 then
 	python vocab.py ./data/train.txt ./vocab/sent_vocab.json ./vocab/tag_vocab.json
