@@ -2,7 +2,7 @@
 
 if [ "$1" = "train" ]
 then
-  python run.py train ./data/train.txt ./vocab/sent_vocab.json ./vocab/tag_vocab.json --cuda
+  python run.py train ./data/train.txt ./vocab/sent_vocab.json ./vocab/tag_vocab.json --cuda | tee log.log
 elif [ "$1" = "train-without-cuda" ]
 then
   python run.py train ./data/train.txt ./vocab/sent_vocab.json ./vocab/tag_vocab.json
