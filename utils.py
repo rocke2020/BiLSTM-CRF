@@ -124,5 +124,16 @@ def main():
     print(len(sentences), len(tags))
 
 
+def flatten_lists(lists):
+    """将list of list 压平成list"""
+    flatten_list = []
+    for list_ in lists:
+        if type(list_) == list:
+            flatten_list.extend(list_)
+        else:
+            flatten_list.append(list_)
+    return flatten_list
+
+
 if __name__ == '__main__':
     main()

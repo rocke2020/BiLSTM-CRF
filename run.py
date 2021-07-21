@@ -29,6 +29,7 @@ import torch
 import torch.nn as nn
 import bilstm_crf
 import utils
+from evaluate_metrics import Metrics
 import random
 
 
@@ -150,16 +151,23 @@ def test(args):
 
     result_file = open(args['RESULT'], 'w')
     model.eval()
+    test_tag_lists = []
+    pred_tag_lists = []
     with torch.no_grad():
         for sentences, tags in utils.batch_iter(test_data, batch_size=int(args['--batch-size']), shuffle=False):
             padded_sentences, sent_lengths = utils.pad(sentences, sent_vocab[sent_vocab.PAD], device)
             predicted_tags = model.predict(padded_sentences, sent_lengths)
             for sent, true_tags, pred_tags in zip(sentences, tags, predicted_tags):
                 sent, true_tags, pred_tags = sent[1: -1], true_tags[1: -1], pred_tags[1: -1]
+                test_tag_lists.append([tag_vocab.id2word(true_tag) for true_tag in true_tags])
+                pred_tag_lists.append([tag_vocab.id2word(pred_tag) for pred_tag in pred_tags])
                 for token, true_tag, pred_tag in zip(sent, true_tags, pred_tags):
                     result_file.write(' '.join([sent_vocab.id2word(token), tag_vocab.id2word(true_tag),
                                                 tag_vocab.id2word(pred_tag)]) + '\n')
                 result_file.write('\n')
+    metrics = Metrics(test_tag_lists, pred_tag_lists)
+    dtype = 'Bi_LSTM+CRF'
+    metrics.report_scores(dtype=dtype)
 
 
 def cal_dev_loss(model, dev_data, batch_size, sent_vocab, tag_vocab, device):
