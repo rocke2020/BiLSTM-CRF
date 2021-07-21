@@ -62,8 +62,7 @@ def batch_iter(data, batch_size=32, shuffle=True):
     for i in range(batch_num):
         batch = [data[idx] for idx in indices[i * batch_size: (i + 1) * batch_size]]
         batch = sorted(batch, key=lambda x: len(x[0]), reverse=True)
-        sentences = [x[0] for x in batch]
-        tags = [x[1] for x in batch]
+        sentences, tags = zip(*batch)
         yield sentences, tags
 
 
