@@ -51,10 +51,10 @@ class BiLSTMCRF(nn.Module):
         Returns:
             emit_score (tensor): emit score, shape (b, len, K)
         """
-        padded_sentences = pack_padded_sequence(sentences, sent_lengths)
-        hidden_states, _ = self.encoder(padded_sentences)
-        hidden_states, _ = pad_packed_sequence(hidden_states, batch_first=True)  # shape: (b, len, 2h)
-        emit_score = self.hidden2emit_score(hidden_states)  # shape: (b, len, K)
+        sentences = pack_padded_sequence(sentences, sent_lengths)
+        output, _ = self.encoder(sentences)
+        output, _ = pad_packed_sequence(output, batch_first=True)  # shape: (b, len, 2h)
+        emit_score = self.hidden2emit_score(output)  # shape: (b, len, K)
         emit_score = self.dropout(emit_score)  # shape: (b, len, K)
         return emit_score
 

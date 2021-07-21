@@ -192,9 +192,8 @@ def main():
     args = docopt(__doc__)
     # random.seed(0)
     # torch.manual_seed(0)
-    if args['--cuda']:
-        # torch.cuda.manual_seed(0)
-        pass
+    # if args['--cuda']:
+    #     torch.cuda.manual_seed(0)
     if args['train']:
         train(args)
     elif args['test']:
