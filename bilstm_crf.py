@@ -37,7 +37,7 @@ class BiLSTMCRF(nn.Module):
             loss (tensor): loss on the batch, shape (b,)
         """
         mask = (sentences != self.sent_vocab[self.sent_vocab.PAD]).to(self.device)  # shape: (b, len)
-        sentences = self.embedding(sentences)  # shape: (len, b, e)
+        sentences = self.embedding(sentences)  # shape: (b, len, e)
         emit_score = self.encode(sentences, sen_lengths)  # shape: (b, len, K)
         loss = self.cal_loss(tags, mask, emit_score)  # shape: (b,)
         return loss
@@ -45,7 +45,7 @@ class BiLSTMCRF(nn.Module):
     def encode(self, sentences, sent_lengths):
         """ BiLSTM Encoder
         Args:
-            sentences (tensor): sentences with word embeddings, shape (len, b, e)
+            sentences (tensor): sentences with word embeddings, shape (b, len, e)
             sent_lengths (list): sentence lengths
         Returns:
             emit_score (tensor): emit score, shape (b, len, K)
@@ -100,7 +100,7 @@ class BiLSTMCRF(nn.Module):
         """
         batch_size = sentences.shape[0]
         mask = (sentences != self.sent_vocab[self.sent_vocab.PAD])  # shape: (b, len)
-        sentences = self.embedding(sentences)  # shape: (len, b, e)
+        sentences = self.embedding(sentences)  # shape: (b, len, e)
         emit_score = self.encode(sentences, sen_lengths)  # shape: (b, len, K)
         tags = [[[i] for i in range(len(self.tag_vocab))]] * batch_size  # list, shape: (b, K, 1)
         d = torch.unsqueeze(emit_score[:, 0], dim=1)  # shape: (b, 1, K)
