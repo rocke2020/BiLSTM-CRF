@@ -31,7 +31,9 @@ import bilstm_crf
 import utils
 from script.conlleval import report_and_evaluate
 import random
+from utils import get_logger
 
+logger = get_logger(name=__name__, log_file=None)
 
 def train(args):
     """ Training BiLSTMCRF model
@@ -41,8 +43,9 @@ def train(args):
     sent_vocab = Vocab.load(args['SENT_VOCAB'])
     tag_vocab = Vocab.load(args['TAG_VOCAB'])
     train_data, dev_data = utils.generate_train_dev_dataset(args['TRAIN'], sent_vocab, tag_vocab)
-    print('num of training examples: %d' % (len(train_data)))
-    print('num of development examples: %d' % (len(dev_data)))
+    train_data, dev_data = utils.generate_train_dev_dataset_from2files(args['TRAIN'], sent_vocab, tag_vocab)
+    logger.info('num of training examples: %d' % (len(train_data)))
+    logger.info('num of development examples: %d' % (len(dev_data)))
 
     max_epoch = int(args['--max-epoch'])
     log_every = int(args['--log-every'])
@@ -67,7 +70,7 @@ def train(args):
     cum_loss_sum, cum_tgt_word_sum, cum_batch_size = 0, 0, 0  # sum in one validation log
     record_start, cum_start = time.time(), time.time()
 
-    print('start training...')
+    logger.info('start training...')
     for epoch in range(max_epoch):
         for sentences, tags in utils.batch_iter(train_data, batch_size=int(args['--batch-size'])):
             train_iter += 1
@@ -92,14 +95,14 @@ def train(args):
             cum_tgt_word_sum += sum(sent_lengths)
 
             if train_iter % log_every == 0:
-                print('log: epoch %d, iter %d, %.1f words/sec, avg_loss %f, time %.1f sec' %
+                logger.info('log: epoch %d, iter %d, %.1f words/sec, avg_loss %f, time %.1f sec' %
                       (epoch + 1, train_iter, record_tgt_word_sum / (time.time() - record_start),
                        record_loss_sum / record_batch_size, time.time() - record_start))
                 record_loss_sum, record_batch_size, record_tgt_word_sum = 0, 0, 0
                 record_start = time.time()
 
             if train_iter % validation_every == 0:
-                print('dev: epoch %d, iter %d, %.1f words/sec, avg_loss %f, time %.1f sec' %
+                logger.info('dev: epoch %d, iter %d, %.1f words/sec, avg_loss %f, time %.1f sec' %
                       (epoch + 1, train_iter, cum_tgt_word_sum / (time.time() - cum_start),
                        cum_loss_sum / cum_batch_size, time.time() - cum_start))
                 cum_loss_sum, cum_batch_size, cum_tgt_word_sum = 0, 0, 0
@@ -115,7 +118,7 @@ def train(args):
                     if patience == int(args['--max-patience']):
                         decay_num += 1
                         if decay_num == int(args['--max-decay']):
-                            print('Early stop. Save result model to %s' % model_save_path)
+                            logger.info('Early stop. Save result model to %s' % model_save_path)
                             return
                         lr = optimizer.param_groups[0]['lr'] * float(args['--lr-decay'])
                         model = bilstm_crf.BiLSTMCRF.load(model_save_path, device)
@@ -123,12 +126,12 @@ def train(args):
                         for param_group in optimizer.param_groups:
                             param_group['lr'] = lr
                         patience = 0
-                print('dev: epoch %d, iter %d, dev_loss %f, patience %d, decay_num %d' %
+                logger.info('dev: epoch %d, iter %d, dev_loss %f, patience %d, decay_num %d' %
                       (epoch + 1, train_iter, dev_loss, patience, decay_num))
                 cum_start = time.time()
                 if train_iter % log_every == 0:
                     record_start = time.time()
-    print('Reached %d epochs, Save result model to %s' % (max_epoch, model_save_path))
+    logger.info('Reached %d epochs, Save result model to %s' % (max_epoch, model_save_path))
 
 
 def test(args):
@@ -142,12 +145,12 @@ def test(args):
     sentences = utils.words2indices(sentences, sent_vocab)
     tags = utils.words2indices(tags, tag_vocab)
     test_data = list(zip(sentences, tags))
-    print('num of test samples: %d' % (len(test_data)))
+    logger.info('num of test samples: %d' % (len(test_data)))
 
     device = torch.device('cuda' if args['--cuda'] else 'cpu')
     model = bilstm_crf.BiLSTMCRF.load(args['MODEL'], device)
-    print('start testing...')
-    print('using device', device)
+    logger.info('start testing...')
+    logger.info('using device', device)
 
     result_file = open(args['RESULT'], 'w')
     model.eval()
