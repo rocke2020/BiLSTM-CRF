@@ -150,7 +150,7 @@ def test(args):
     device = torch.device('cuda' if args['--cuda'] else 'cpu')
     model = bilstm_crf.BiLSTMCRF.load(args['MODEL'], device)
     logger.info('start testing...')
-    logger.info('using device', device)
+    logger.info(f'using device {device}')
 
     result_file = open(args['RESULT'], 'w')
     model.eval()
