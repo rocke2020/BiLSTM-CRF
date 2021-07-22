@@ -29,7 +29,7 @@ import torch
 import torch.nn as nn
 import bilstm_crf
 import utils
-from conlleval import report_and_evaluate
+from script.conlleval import report_and_evaluate
 import random
 
 
