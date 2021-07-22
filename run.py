@@ -29,7 +29,7 @@ import torch
 import torch.nn as nn
 import bilstm_crf
 import utils
-from evaluate_metrics import Metrics
+from conlleval import report_and_evaluate
 import random
 
 
@@ -159,16 +159,14 @@ def test(args):
             predicted_tags = model.predict(padded_sentences, sent_lengths)
             for sent, true_tags, pred_tags in zip(sentences, tags, predicted_tags):
                 sent, true_tags, pred_tags = sent[1: -1], true_tags[1: -1], pred_tags[1: -1]
-                test_tag_lists.append([tag_vocab.id2word(true_tag) for true_tag in true_tags])
-                pred_tag_lists.append([tag_vocab.id2word(pred_tag) for pred_tag in pred_tags])
+                test_tag_lists.extend([tag_vocab.id2word(true_tag) for true_tag in true_tags])
+                pred_tag_lists.extend([tag_vocab.id2word(pred_tag) for pred_tag in pred_tags])
                 for token, true_tag, pred_tag in zip(sent, true_tags, pred_tags):
                     result_file.write(' '.join([sent_vocab.id2word(token), tag_vocab.id2word(true_tag),
                                                 tag_vocab.id2word(pred_tag)]) + '\n')
                 result_file.write('\n')
-    metrics = Metrics(test_tag_lists, pred_tag_lists)
-    dtype = 'Bi_LSTM+CRF'
-    metrics.report_scores(dtype=dtype)
 
+    report_and_evaluate(test_tag_lists, pred_tag_lists)
 
 def cal_dev_loss(model, dev_data, batch_size, sent_vocab, tag_vocab, device):
     """ Calculate loss on the development data
