@@ -1,5 +1,4 @@
-from os import replace
-import random
+import random, json
 import torch
 import logging, os, sys
 
@@ -180,6 +179,19 @@ def flatten_lists(lists):
             flatten_list.append(list_)
     return flatten_list
 
+a =[]
+a.sort()
+def get_labels_as_txt_file():
+    with open('vocab/tag_vocab.json', 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    id2word = data['id2word']
+    id2word.sort(key=lambda x: x.split('-')[1] if '-' in x else x)
+    excluded_items = ('<START>', '<END>', '<PAD>')
+    with open('labels.txt', 'w', encoding='utf-8') as f:
+        for item in id2word:
+            if item not in excluded_items:
+                f.write(item+'\n')
 
 if __name__ == '__main__':
-    main()
+    # main()
+    get_labels_as_txt_file()
